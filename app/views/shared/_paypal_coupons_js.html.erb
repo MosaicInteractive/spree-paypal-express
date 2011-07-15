@@ -1,0 +1,11 @@
+<%= javascript_tag :defer => 'defer' do %>
+  $('#order_coupon_code').change(function() {
+    var paypal_button = document.getElementById('paypal-checkout-button');
+    var coupon_code = paypal_button.href.search("coupon_code");
+    if(coupon_code > 0) {
+      paypal_button.href = paypal_button.href.substring(0, coupon_code) + "&coupon_code=" + this.value;
+    } else {
+      paypal_button.href = paypal_button.href + "&coupon_code=" + this.value;
+    }
+  });
+<% end %>
