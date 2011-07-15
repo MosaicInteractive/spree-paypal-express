@@ -27,6 +27,12 @@ CheckoutController.class_eval do
 
   def paypal_payment
     load_order
+    # check for coupon code, and add adjustment
+    @coupon_code = params[:coupon_code] || ''
+    if @coupon_code.present?
+      coupon = Promotion.find(:first, :conditions => ["UPPER(code) = ?", @coupon_code.upcase])
+      coupon.create_discount(@order) if coupon
+    end
     opts = all_opts(@order,params[:payment_method_id], 'payment')
     opts.merge!(address_options(@order))
     @gateway = paypal_gateway
