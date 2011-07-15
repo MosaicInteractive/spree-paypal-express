@@ -224,7 +224,7 @@ CheckoutController.class_eval do
 
   def order_opts(order, payment_method, stage)
     items = order.line_items.map do |item|
-      price = (item.price * 100).to_i # convert for gateway
+      price = (item.price * 100).round.to_i # convert for gateway
       { :name        => item.variant.product.name,
         :description => (item.variant.product.description[0..120] if item.variant.product.description),
         :sku         => item.variant.sku,
@@ -242,7 +242,7 @@ CheckoutController.class_eval do
           :description => credit.label,
           :sku         => credit.id,
           :quantity    => 1,
-          :amount      => (credit.amount*100).to_i }
+          :amount      => (credit.amount*100).round.to_i }
       end
     end
 
@@ -259,13 +259,13 @@ CheckoutController.class_eval do
              :order_id          => order.number,
              :custom            => order.number,
              :items             => items,
-             :subtotal          => ((order.item_total * 100) + credits_total).to_i,
-             :tax               => ((order.adjustments.map { |a| a.amount if ( a.source_type == 'Order' && a.label == 'Tax') }.compact.sum) * 100 ).to_i,
-             :shipping          => ((order.adjustments.map { |a| a.amount if a.source_type == 'Shipment' }.compact.sum) * 100 ).to_i,
-             :money             => (order.total * 100 ).to_i }
+             :subtotal          => ((order.item_total * 100) + credits_total).round.to_i,
+             :tax               => ((order.adjustments.map { |a| a.amount if ( a.source_type == 'Order' && a.label == 'Tax') }.compact.sum) * 100 ).round.to_i,
+             :shipping          => ((order.adjustments.map { |a| a.amount if a.source_type == 'Shipment' }.compact.sum) * 100 ).round.to_i,
+             :money             => (order.total * 100 ).round.to_i }
              
       # add correct tax amount by subtracting subtotal and shipping otherwise tax = 0 -> need to check adjustments.map
-      opts[:tax] = (order.total*100).to_i - opts.slice(:subtotal, :shipping).values.sum
+      opts[:tax] = (order.total*100).round.to_i - opts.slice(:subtotal, :shipping).values.sum
 
     if stage == "checkout"
       opts[:handling] = 0
@@ -276,7 +276,7 @@ CheckoutController.class_eval do
       #hack to add float rounding difference in as handling fee - prevents PayPal from rejecting orders
       #because the integer totals are different from the float based total. This is temporary and will be
       #removed once Spree's currency values are persisted as integers (normally only 1c)
-      opts[:handling] =  (order.total*100).to_i - opts.slice(:subtotal, :tax, :shipping).values.sum
+      opts[:handling] =  (order.total*100).round.to_i - opts.slice(:subtotal, :tax, :shipping).values.sum
     end
 
     opts
